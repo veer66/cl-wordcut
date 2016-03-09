@@ -1,3 +1,3 @@
-(defpackage :wordcut
+(defpackage :cl-wordcut
   (:use :cl)
-  (:export #:titi))
+  (:export #:dict-seek))
