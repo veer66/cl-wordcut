@@ -5,4 +5,4 @@
 (in-suite main)
 
 (test titi-tutu
-      (is (eq 1 1)))
+      (is (string= "@@@" (wordcut:titi))))
