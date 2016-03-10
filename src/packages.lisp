@@ -1,3 +1,6 @@
 (defpackage :cl-wordcut
   (:use :cl)
-  (:export #:dict-seek))
+  (:export #:dict-seek
+	   #:dict-pointer
+	   #:update
+	   #:l))
