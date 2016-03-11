@@ -3,4 +3,5 @@
   (:export #:dict-seek
 	   #:dict-pointer
 	   #:update
-	   #:l))
+	   #:l
+	   #:create-pointers-updater))
