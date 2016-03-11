@@ -3,5 +3,13 @@
   (:export #:dict-seek
 	   #:dict-pointer
 	   #:update
+	   #:s
 	   #:l
-	   #:create-pointers-updater))
+	   #:unk
+	   #:chunk
+	   #:offset
+	   #:create-pointers-updater
+	   #:edge
+	   #:create-edges-builder
+	   #:is-better-than
+	   #:best-edge))

@@ -32,10 +32,51 @@
 	     (text "กา")
 	     (pointers (funcall do-update-pointers 0 text nil))
 	     (pointers (funcall do-update-pointers 1 text pointers)))
-	(is (eq 1 (length pointers)))))
+	(is (and (eq 1 (length pointers))
+		 (eq 2 (cl-wordcut:offset (car pointers)))))))
 
 (test update-pointers-not-found
       (let* ((do-update-pointers (default-do-pointers))
 	     (text "ยา")
 	     (pointers (funcall do-update-pointers 0 text nil)))
 	(is (eq 0 (length pointers)))))
+
+(test build-candidate-edges
+      (let* ((dag (vector (make-instance 'cl-wordcut:edge)
+			  nil))
+	     (pointers (list (make-instance 'cl-wordcut:dict-pointer
+					    :is-final t
+					    :offset 1)))
+	     (build-edges (cl-wordcut:create-edges-builder 'cl-wordcut:edge))
+	     (edges (funcall build-edges dag pointers)))
+	(is (and (eq 1 (length edges))
+		 (eq 0 (cl-wordcut:s (car edges)))))))
+					
+(test is-better-than
+      (let ((p0 (make-instance 'cl-wordcut:edge
+			       :unk 1
+			       :chunk 5))
+	    (p1 (make-instance 'cl-wordcut:edge
+			       :unk 2
+			       :chunk 1)))
+	(is (cl-wordcut:is-better-than p0 p1))))
+
+(test is-better-than-eq
+      (let ((p0 (make-instance 'cl-wordcut:edge
+			       :unk 1
+			       :chunk 1))
+	    (p1 (make-instance 'cl-wordcut:edge
+			       :unk 1
+			       :chunk 1)))
+	(is (not (cl-wordcut:is-better-than p0 p1)))))
+
+(test best-edge
+      (is (eq 1
+	      (cl-wordcut:unk
+	       (cl-wordcut:best-edge
+		(list (make-instance 'cl-wordcut:edge
+				     :unk 2
+				     :chunk 1)
+		      (make-instance 'cl-wordcut:edge
+				     :unk 1
+				     :chunk 1)))))))

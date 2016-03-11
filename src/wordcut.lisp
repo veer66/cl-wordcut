@@ -53,3 +53,46 @@
       (delete nil
 	      (mapcar #'(lambda (pointer) (update pointer ch))
 		      pointers)))))
+
+(defclass edge ()
+  ((s :accessor s :initarg :s :initform 0)
+   (unk :accessor unk :initarg :unk :initform 0)
+   (chunk :accessor chunk :initarg :chunk :initform 0)
+   (etype :accessor etype :initarg :etype :initform :INIT)))
+
+(defun create-edges-builder (edge-class)
+  (lambda (dag pointers)
+      (labels ((build (pointer)
+		 (let* ((s (s pointer))
+			(src (elt dag s)))
+		   (make-instance edge-class
+				  :s s
+				  :unk (unk src)
+				  :chunk (+ (chunk src) 1)))))
+	(mapcar #'build pointers))))
+
+(defgeneric is-better-than (o1 o2))
+(defmethod is-better-than ((o1 edge) (o2 edge))
+  (labels ((check (attrs)
+	     (if (null attrs)
+		 nil
+		 (let* ((attr (car attrs))
+			(v1 (slot-value o1 attr))
+			(v2 (slot-value o2 attr)))
+		   (cond
+		     ((< v1 v2) t)
+		     ((> v1 v2) nil)
+		     (t (check (cdr attrs)))))))) 
+    (check '(unk chunk))))
+
+(defun best-edge (all-edges)
+  (labels ((find-best (edges best)
+   	     (if (null edges)
+		 best
+   		 (if (null best)
+  		     (find-best (cdr edges) (car edges))
+  		     (let ((edge (car edges)))
+  		       (if (is-better-than edge best)
+  			   (find-best (cdr edges) edge)
+  			   (find-best (cdr edges) best)))))))
+  (find-best all-edges nil)))
