@@ -80,3 +80,24 @@
 		      (make-instance 'cl-wordcut:edge
 				     :unk 1
 				     :chunk 1)))))))
+
+(test build-dag
+      (let* ((dict (create-dict))
+	     (build-edges (cl-wordcut:create-edges-builder
+			   'cl-wordcut:edge))
+	     (update-pointers (cl-wordcut:create-pointers-updater
+			       'cl-wordcut:dict-pointer
+			       dict))
+	     (dag (cl-wordcut:build-dag
+		   "ขามกา"
+		   dict
+		   build-edges
+		   update-pointers
+		   #'cl-wordcut:basic-update-dag)))
+	(is (eq 6 (length dag)))
+	(is (eq :INIT (cl-wordcut:etype (elt dag 0))))
+	(is (eq :INIT (cl-wordcut:etype (elt dag 0))))
+	(is (eq :UNK  (cl-wordcut:etype (elt dag 1))))
+	(is (eq :DICT  (cl-wordcut:etype (elt dag 2))))
+	(is (eq 0 (cl-wordcut:s (elt dag 2))))
+	(is (eq 3 (cl-wordcut:s (elt dag 5))))))

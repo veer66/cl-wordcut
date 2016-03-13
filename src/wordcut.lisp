@@ -68,7 +68,8 @@
 		   (make-instance edge-class
 				  :s s
 				  :unk (unk src)
-				  :chunk (+ (chunk src) 1)))))
+				  :chunk (+ (chunk src) 1)
+				  :etype :DICT))))
 	(mapcar #'build pointers))))
 
 (defgeneric is-better-than (o1 o2))
@@ -95,4 +96,43 @@
   		       (if (is-better-than edge best)
   			   (find-best (cdr edges) edge)
   			   (find-best (cdr edges) best)))))))
-  (find-best all-edges nil)))
+    (find-best all-edges nil)))
+
+(defun update-dag-dict (dag i final-pointers build-edges)
+  (setf (elt dag i)
+	(best-edge (funcall build-edges dag final-pointers)))
+  i)
+
+(defun unk-edge (dag left)
+  (let ((src (elt dag left)))
+    (make-instance 'edge
+		   :chunk (chunk src)
+		   :unk (+ (unk src) 1)
+		   :s left
+		   :etype :UNK)))
+
+(defun update-dag-unk (dag i left)
+  (setf (elt dag i)
+	(unk-edge dag left))
+  left)
+
+(defun basic-update-dag (dag i left pointers build-edges)
+  (let ((final-pointers (delete-if-not #'is-final pointers)))
+    (if (null final-pointers)
+	(update-dag-unk dag i left)
+	(update-dag-dict dag i final-pointers build-edges))))
+
+(defun build-dag (text dict build-edges update-pointers update-dag)
+  (let* ((dag (make-array (+ (length text) 1))))
+    (labels ((iter (i left pointers)
+	       (if (> i (length text))
+		   dag
+		   (let* ((pointers (funcall update-pointers
+					     (- i 1)
+					     text
+					     pointers))
+			  (left (funcall update-dag dag i left
+					 pointers build-edges)))
+		     (iter (+ i 1) left pointers)))))
+      (setf (elt dag 0) (make-instance 'edge))
+      (iter 1 0 nil))))

@@ -10,6 +10,9 @@
 	   #:offset
 	   #:create-pointers-updater
 	   #:edge
+	   #:etype
 	   #:create-edges-builder
 	   #:is-better-than
-	   #:best-edge))
+	   #:best-edge
+	   #:build-dag
+	   #:basic-update-dag))
