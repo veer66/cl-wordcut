@@ -3,6 +3,7 @@
   :description "Word segmentation tools for ASEAN languages written in Common Lisp"
     :author "Vee Satayamas"
     :license "LLGPL"
+    :depends-on ("asdf")
     :in-order-to ((test-op (test-op "cl-wordcut/test")))
     :pathname "src"
     :components ((:file "packages")

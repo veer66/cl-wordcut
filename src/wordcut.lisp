@@ -157,3 +157,11 @@
 		  update-pointers
 		  #'basic-update-dag)))
 	(dag-to-list dag text)))))
+
+(defun load-dict-from-bundle (file-name)
+  (let* ((sub-path (concatenate 'string "data" "/" file-name))
+	 (path (asdf:system-relative-pathname 'cl-wordcut sub-path)))
+    (with-open-file (f path)
+      (loop for line = (read-line f nil)
+	 until (null line)
+	 collect line))))

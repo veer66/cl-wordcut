@@ -137,3 +137,8 @@
 	      (cl-wordcut:create-basic-wordcut (create-dict))))
 	(is (equal (list "ขาม" "กา")
 		   (funcall wordcut "ขามกา")))))
+
+(test load-dict-from-bundle
+      (let ((dict (cl-wordcut:load-dict-from-bundle "tdict-std.txt")))
+	(is (eq 15374
+		(length dict)))))

@@ -17,4 +17,5 @@
 	   #:build-dag
 	   #:basic-update-dag
 	   #:dag-to-list
-	   #:create-basic-wordcut))
+	   #:create-basic-wordcut
+	   #:load-dict-from-bundle))
