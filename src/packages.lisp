@@ -16,4 +16,5 @@
 	   #:best-edge
 	   #:build-dag
 	   #:basic-update-dag
-	   #:dag-to-list))
+	   #:dag-to-list
+	   #:create-basic-wordcut))

@@ -145,3 +145,15 @@
 			(surface (subseq text s e)))
 		   (iter s (cons surface lst))))))		   
     (iter (length text) nil)))
+
+(defun create-basic-wordcut (dict)
+  (let ((build-edges (create-edges-builder 'edge))
+	(update-pointers (create-pointers-updater 'dict-pointer dict)))
+    (lambda (text)
+      (let ((dag (cl-wordcut:build-dag
+		  text
+		  dict
+		  build-edges
+		  update-pointers
+		  #'basic-update-dag)))
+	(dag-to-list dag text)))))

@@ -131,3 +131,9 @@
 					:chunk 2))))
 	(is (equal (list "ขาม" "กา")
 		   (cl-wordcut:dag-to-list dag "ขามกา")))))
+
+(test wordcut-basic
+      (let ((wordcut
+	      (cl-wordcut:create-basic-wordcut (create-dict))))
+	(is (equal (list "ขาม" "กา")
+		   (funcall wordcut "ขามกา")))))
