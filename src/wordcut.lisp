@@ -136,3 +136,12 @@
 		     (iter (+ i 1) left pointers)))))
       (setf (elt dag 0) (make-instance 'edge))
       (iter 1 0 nil))))
+
+(defun dag-to-list (dag text)
+  (labels ((iter (e lst)
+	     (if (eq 0 e)
+		 lst
+		 (let* ((s (s (elt dag e)))
+			(surface (subseq text s e)))
+		   (iter s (cons surface lst))))))		   
+    (iter (length text) nil)))

@@ -15,4 +15,5 @@
 	   #:is-better-than
 	   #:best-edge
 	   #:build-dag
-	   #:basic-update-dag))
+	   #:basic-update-dag
+	   #:dag-to-list))

@@ -101,3 +101,33 @@
 	(is (eq :DICT  (cl-wordcut:etype (elt dag 2))))
 	(is (eq 0 (cl-wordcut:s (elt dag 2))))
 	(is (eq 3 (cl-wordcut:s (elt dag 5))))))
+
+(test dag-to-list
+      (let ((dag (vector (make-instance 'cl-wordcut:edge)
+			 (make-instance 'cl-wordcut:edge
+					:s 0
+					:etype :UNK
+					:unk 1
+					:chunk 1)
+			 (make-instance 'cl-wordcut:edge
+					:s 0
+					:etype :DICT
+					:unk 0
+					:chunk 1)
+			 (make-instance 'cl-wordcut:edge
+					:s 0
+					:etype :DICT
+					:unk 0
+					:chunk 1)
+			 (make-instance 'cl-wordcut:edge
+					:s 3
+					:etype :UNK
+					:unk 1
+					:chunk 2)
+			 (make-instance 'cl-wordcut:edge
+					:s 3
+					:etype :DICT
+					:unk 0
+					:chunk 2))))
+	(is (equal (list "ขาม" "กา")
+		   (cl-wordcut:dag-to-list dag "ขามกา")))))
