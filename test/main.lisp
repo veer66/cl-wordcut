@@ -90,7 +90,6 @@
 			       dict))
 	     (dag (cl-wordcut:build-dag
 		   "ขามกา"
-		   dict
 		   build-edges
 		   update-pointers
 		   #'cl-wordcut:basic-update-dag)))
@@ -192,3 +191,56 @@
 	      (cl-wordcut:create-basic-wordcut dict)))
 	(is (equal (list "que" " " "sera" " " "sera")
 		   (funcall wordcut "que sera sera")))))
+
+
+(test pointer-khmer
+      (let* ((dict (cl-wordcut:load-dict-from-bundle "khmerwords.txt"))
+	     (p (make-instance 'cl-wordcut:dict-pointer
+			       :r (- (length dict) 1)
+			       :dict dict)))
+	(is (cl-wordcut:update p #\KHMER_LETTER_PHO))
+	(setq p (cl-wordcut:update p #\KHMER_LETTER_PHO))
+	(is (cl-wordcut:update p #\KHMER_VOWEL_SIGN_AA))
+	(setq p (cl-wordcut:update p #\KHMER_VOWEL_SIGN_AA))
+	(is (cl-wordcut:update p #\KHMER_LETTER_SA))
+	(setq p (cl-wordcut:update p #\KHMER_LETTER_SA))
+	(is (cl-wordcut:update p #\KHMER_VOWEL_SIGN_AA))))
+
+
+(test pointer-khmer
+      (let* ((dict (cl-wordcut:load-dict-from-bundle "khmerwords.txt"))
+	     (p (make-instance 'cl-wordcut:dict-pointer
+			       :r (- (length dict) 1)
+			       :dict dict)))
+	(loop for i from 0 to 3 do
+	     (let ((ch (char "ភាសា" i)))
+	       (setq p (cl-wordcut:update p ch))
+	       (is (not (null p)))))))
+		
+
+
+(test build-dag-khmer
+      (let* ((dict (cl-wordcut:load-dict-from-bundle "khmerwords.txt"))
+	     (build-edges (cl-wordcut:create-edges-builder
+			   'cl-wordcut:edge))
+	     (update-pointers (cl-wordcut:create-pointers-updater
+			       'cl-wordcut:dict-pointer
+			       dict))
+	     (dag (cl-wordcut:build-dag
+		   "ភាសា"
+		   build-edges
+		   update-pointers
+		   #'cl-wordcut:basic-update-dag)))
+	(is (eq 5 (length dag)))
+	(is (eq :DICT
+		(cl-wordcut:etype (elt dag 4))))
+	(is (eq 0
+		(cl-wordcut:unk (elt dag 4))))))
+
+
+(test wordcut-khmer
+      (let* ((dict (cl-wordcut:load-dict-from-bundle "khmerwords.txt"))
+	     (wordcut
+	      (cl-wordcut:create-basic-wordcut dict)))
+	(is (equal (list "ភាសា" "ខ្មែរ")
+		   (funcall wordcut "ភាសាខ្មែរ")))))

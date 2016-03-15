@@ -42,17 +42,18 @@
 		       :is-final (eq w-len (+ 1 offset)))))))
 
 (defun create-pointers-updater (pointer-class dict)
-  (lambda (i text _pointers)
-    (let ((ch (char text i))
-	  (pointers (cons (make-instance pointer-class
-					 :s i
-					 :r (- (length dict) 1)
-					 :dict dict)
-			  _pointers)))
-
-      (delete nil
-	      (mapcar #'(lambda (pointer) (update pointer ch))
-		      pointers)))))
+  (lambda (i text pointers)
+    (let* ((ch (char text i))
+	   (added-pointers (cons (make-instance pointer-class
+						:s i
+						:r (- (length dict) 1)
+						:dict dict)
+				 pointers))
+	   (updated-pointers (mapcar #'(lambda (pointer)
+					 (update pointer ch))
+				     added-pointers))
+	   (removed-pointers (remove nil updated-pointers)))
+      removed-pointers)))
 
 (defclass edge ()
   ((s :accessor s :initarg :s :initform 0)
@@ -177,7 +178,7 @@
   i)
 
 (defun basic-update-dag (dag i left pointers build-edges space-info)
-  (let ((final-pointers (delete-if-not #'is-final pointers)))
+  (let ((final-pointers (remove-if-not #'is-final pointers)))
     (cond
       ((> (length final-pointers) 0)
        (update-dag-dict dag i final-pointers build-edges))
@@ -186,15 +187,15 @@
       (t
        (update-dag-unk dag i left)))))
 
-(defun build-dag (text dict build-edges update-pointers update-dag)
+(defun build-dag (text build-edges update-pointers update-dag)
   (let* ((dag (make-array (+ (length text) 1))))
     (labels ((iter (i left pointers space-info)
 	       (if (> i (length text))
 		   dag
-		   (let* ((pointers (funcall update-pointers
-					     (- i 1)
-					     text
-					     pointers))
+		   (let* ((updated-pointers (funcall update-pointers
+						     (- i 1)
+						     text
+						     pointers))
 			  (space-info (update-lookahead space-info
 							(char text (- i 1))
 							(if (eq i
@@ -202,9 +203,9 @@
 							    nil
 							    (char text i))))
 			  (left (funcall update-dag dag i left
-					 pointers build-edges
+					 updated-pointers build-edges
 					 space-info)))
-		     (iter (+ i 1) left pointers space-info)))))
+		     (iter (+ i 1) left updated-pointers space-info)))))
       (setf (elt dag 0) (make-instance 'edge))
       (iter 1 0 nil (make-instance 'space-info)))))
 
@@ -223,11 +224,18 @@
     (lambda (text)
       (let ((dag (cl-wordcut:build-dag
 		  text
-		  dict
 		  build-edges
 		  update-pointers
 		  #'basic-update-dag)))
 	(dag-to-list dag text)))))
+
+(defmethod print-object ((self edge) str)
+  (format str "(EDGE s=~a etype=~a unk=~a chunk=~a)" (s self)
+	  (etype self) (unk self) (chunk self)))
+
+(defmethod print-object ((self dict-pointer) str)
+  (format str "(DICT-POINTER s=~a l=~a r=~a)" (s self)
+	  (l self) (r self)))
 
 (defun load-dict-from-bundle (file-name)
   (let* ((sub-path (concatenate 'string "data" "/" file-name))
