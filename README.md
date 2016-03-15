@@ -6,7 +6,7 @@ cl-wordcut is a word segmentation tool for ASEAN languages written in Common Lis
 ## Example
 
 ### Thai
-```commonlisp
+```lisp
 (require 'cl-wordcut)
 (defvar *dict* (cl-wordcut:load-dict-from-bundle "tdict-std.txt"))
 (defvar *wordcut* (cl-wordcut:create-basic-wordcut *dict*))
