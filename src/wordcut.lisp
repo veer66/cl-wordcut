@@ -106,7 +106,7 @@
 (defun unk-edge (dag left)
   (let ((src (elt dag left)))
     (make-instance 'edge
-		   :chunk (chunk src)
+		   :chunk (+ (chunk src) 1)
 		   :unk (+ (unk src) 1)
 		   :s left
 		   :etype :UNK)))
@@ -116,26 +116,97 @@
 	(unk-edge dag left))
   left)
 
-(defun basic-update-dag (dag i left pointers build-edges)
+(defun is-space (ch)
+  (member ch (list #\Space #\Tab #\Newline #\Return)))
+	
+(defclass space-info ()
+  ((s :accessor s :initarg :s :initform 0)
+   (offset :accessor offset :initarg :offset :initform 0)
+   (is-final :accessor is-final :initarg :is-final :initform nil)))
+
+(defun update-space-info (info current-is-space next-is-space)
+  (cond
+    ((and current-is-space next-is-space)
+     (make-instance 'space-info
+		    :s (s info)
+		    :offset (+ (offset info) 1)
+		    :is-final (is-final info)))
+      ((and current-is-space (not next-is-space))
+       (make-instance 'space-info
+		      :s (s info)
+		      :offset (+ (offset info)
+				 1)
+		      :is-final t))
+      (t
+       (make-instance 'space-info
+		      :s (+ (s info)
+			    (offset info)
+			    1)
+		      :offset 0
+		      :is-final nil))))
+
+(defgeneric update-lookahead (info ch next-ch))
+(defmethod update-lookahead ((info space-info)
+			     (ch character)
+			     (next-ch character))
+  (let ((next-is-space (is-space next-ch))
+	(current-is-space (is-space ch)))
+    (update-space-info info
+		       current-is-space
+		       next-is-space)))
+
+(defmethod update-lookahead ((info space-info)
+			     (ch character)
+			     (next-ch null))
+  (let ((next-is-space nil)
+	(current-is-space (is-space ch)))
+    (update-space-info info
+		       current-is-space
+		       next-is-space)))
+
+(defun update-dag-space (dag i space-info)
+  (let* ((s (s space-info))
+	 (src (elt dag s))
+	 (new-edge (make-instance 'edge
+				  :chunk (+ (chunk src) 1)
+				  :unk (unk src)
+				  :s s
+				  :etype :SPACE)))
+    (setf (elt dag i)
+	  new-edge))
+  i)
+
+(defun basic-update-dag (dag i left pointers build-edges space-info)
   (let ((final-pointers (delete-if-not #'is-final pointers)))
-    (if (null final-pointers)
-	(update-dag-unk dag i left)
-	(update-dag-dict dag i final-pointers build-edges))))
+    (cond
+      ((> (length final-pointers) 0)
+       (update-dag-dict dag i final-pointers build-edges))
+      ((is-final space-info)
+       (update-dag-space dag i space-info))
+      (t
+       (update-dag-unk dag i left)))))
 
 (defun build-dag (text dict build-edges update-pointers update-dag)
   (let* ((dag (make-array (+ (length text) 1))))
-    (labels ((iter (i left pointers)
+    (labels ((iter (i left pointers space-info)
 	       (if (> i (length text))
 		   dag
 		   (let* ((pointers (funcall update-pointers
 					     (- i 1)
 					     text
 					     pointers))
+			  (space-info (update-lookahead space-info
+							(char text (- i 1))
+							(if (eq i
+								(length text))
+							    nil
+							    (char text i))))
 			  (left (funcall update-dag dag i left
-					 pointers build-edges)))
-		     (iter (+ i 1) left pointers)))))
+					 pointers build-edges
+					 space-info)))
+		     (iter (+ i 1) left pointers space-info)))))
       (setf (elt dag 0) (make-instance 'edge))
-      (iter 1 0 nil))))
+      (iter 1 0 nil (make-instance 'space-info)))))
 
 (defun dag-to-list (dag text)
   (labels ((iter (e lst)

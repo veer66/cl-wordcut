@@ -155,3 +155,40 @@
 	      (cl-wordcut:create-basic-wordcut dict)))
 	(is (equal (list "ม้า" "ไก่" "เป็ด")
 		   (funcall wordcut "ม้าไก่เป็ด")))))
+
+(test space-info-start-non-space
+      (let* ((space-info (make-instance 'cl-wordcut:space-info :s 10))
+	     (space-info (cl-wordcut:update-lookahead space-info #\A #\B)))
+	(is (null (cl-wordcut:is-final space-info)))
+	(is (eq 11 (cl-wordcut:s space-info)))
+	(is (eq 0 (cl-wordcut:offset space-info)))))
+
+(test space-info-start-non-space-end
+      (let* ((space-info (make-instance 'cl-wordcut:space-info :s 10))
+	     (space-info (cl-wordcut:update-lookahead space-info #\A nil)))
+	(is (null (cl-wordcut:is-final space-info)))
+	(is (eq 11 (cl-wordcut:s space-info)))
+	(is (eq 0 (cl-wordcut:offset space-info)))))
+
+(test space-info-space-non-space
+      (let* ((space-info (make-instance 'cl-wordcut:space-info :s 10))
+	     (space-info (cl-wordcut:update-lookahead space-info #\Space #\A)))
+	(is (eq 10 (cl-wordcut:s space-info)))
+	(is (cl-wordcut:is-final space-info))
+	(is (eq 1 (cl-wordcut:offset space-info)))))
+
+(test space-info-space-space
+      (let* ((space-info (make-instance 'cl-wordcut:space-info :s 10))
+	     (space-info (cl-wordcut:update-lookahead space-info #\Space #\Space)))
+	(is (eq 10 (cl-wordcut:s space-info)))
+	(is (not (cl-wordcut:is-final space-info)))
+	(is (eq 1 (cl-wordcut:offset space-info)))))
+
+
+
+(test wordcut-latin-alphabet
+      (let* ((dict (cl-wordcut:load-dict-from-bundle "tdict-std.txt"))
+	     (wordcut
+	      (cl-wordcut:create-basic-wordcut dict)))
+	(is (equal (list "que" " " "sera" " " "sera")
+		   (funcall wordcut "que sera sera")))))

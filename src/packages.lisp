@@ -18,4 +18,8 @@
 	   #:basic-update-dag
 	   #:dag-to-list
 	   #:create-basic-wordcut
-	   #:load-dict-from-bundle))
+	   #:load-dict-from-bundle
+	   #:space-info
+	   #:update
+	   #:update-lookahead
+	   #:is-final))
