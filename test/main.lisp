@@ -142,3 +142,16 @@
       (let ((dict (cl-wordcut:load-dict-from-bundle "tdict-std.txt")))
 	(is (eq 15374
 		(length dict)))))
+
+
+(test seek-std-dict
+      (let* ((dict (cl-wordcut:load-dict-from-bundle "tdict-std.txt")))
+	(is (not (null (cl-wordcut:dict-seek
+			dict :LEFT 0 (- (length dict) 1) 0 #\ม))))))
+
+(test wordcut-with-std-dict
+      (let* ((dict (cl-wordcut:load-dict-from-bundle "tdict-std.txt"))
+	     (wordcut
+	      (cl-wordcut:create-basic-wordcut dict)))
+	(is (equal (list "ม้า" "ไก่" "เป็ด")
+		   (funcall wordcut "ม้าไก่เป็ด")))))
