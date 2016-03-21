@@ -6,7 +6,7 @@
     (labels ((recur (l r ans)
   	       (if (<= l r)
   		   (let* ((m (floor (+ l r) 2))
-  			  (w (car (elt dict m)))
+  			  (w (car (aref dict m)))
   			  (wlen (length w)))
   		     (if (<= wlen offset)
   			 (recur (inc m) r ans)

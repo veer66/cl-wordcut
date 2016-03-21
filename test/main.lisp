@@ -5,7 +5,7 @@
 (in-suite main)
 
 (defun create-dict ()
-  (mapcar #'list (list "กา" "ขา" "ขาม" "อม")))
+  (map 'vector #'list (vector "กา" "ขา" "ขาม" "อม")))
 
 (test dict-seek-basic
   (is (eq 1
