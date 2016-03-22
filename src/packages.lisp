@@ -2,6 +2,7 @@
   (:use :cl)
   (:export #:dict-seek
 	   #:dict-pointer
+	   #:dict
 	   #:update
 	   #:s
 	   #:l
@@ -17,6 +18,7 @@
 	   #:build-dag
 	   #:basic-update-dag
 	   #:dag-to-list
+	   #:proto-dag-to-list
 	   #:create-basic-wordcut
 	   #:load-dict-from-bundle
 	   #:space-info

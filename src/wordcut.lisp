@@ -36,6 +36,7 @@
       (let* ((r (dict-seek (dict p) :RIGHT l (r p) offset ch))
 	     (w (car (elt (dict pointer) l)))
 	     (w-len (length w)))
+;;	(format t "update ch=~A; s=~A; r=~A~%" ch (pr)
 	(make-instance 'dict-pointer :s (s p) :l l :r r
 		       :offset (+ (offset pointer) 1)
 		       :dict dict
@@ -104,17 +105,17 @@
 	(best-edge (funcall build-edges dag final-pointers)))
   i)
 
-(defun unk-edge (dag left)
+(defun unk-edge (dag left edge-class)
   (let ((src (elt dag left)))
-    (make-instance 'edge
+    (make-instance edge-class
 		   :chunk (+ (chunk src) 1)
 		   :unk (+ (unk src) 1)
 		   :s left
 		   :etype :UNK)))
 
-(defun update-dag-unk (dag i left)
+(defun update-dag-unk (dag i left edge-class)
   (setf (elt dag i)
-	(unk-edge dag left))
+	(unk-edge dag left edge-class))
   left)
 
 (defun is-space (ch)
@@ -165,10 +166,10 @@
 		       current-is-space
 		       next-is-space)))
 
-(defun update-dag-space (dag i space-info)
+(defun update-dag-space (dag i space-info edge-class)
   (let* ((s (s space-info))
 	 (src (elt dag s))
-	 (new-edge (make-instance 'edge
+	 (new-edge (make-instance edge-class
 				  :chunk (+ (chunk src) 1)
 				  :unk (unk src)
 				  :s s
@@ -177,17 +178,18 @@
 	  new-edge))
   i)
 
-(defun basic-update-dag (dag i left pointers build-edges space-info)
+(defun basic-update-dag (dag i left pointers build-edges space-info edge-class)
   (let ((final-pointers (remove-if-not #'is-final pointers)))
     (cond
       ((> (length final-pointers) 0)
        (update-dag-dict dag i final-pointers build-edges))
       ((is-final space-info)
-       (update-dag-space dag i space-info))
+       (update-dag-space dag i space-info edge-class))
       (t
-       (update-dag-unk dag i left)))))
+       (update-dag-unk dag i left edge-class)))))
 
-(defun build-dag (text build-edges update-pointers update-dag)
+(defun build-dag (text build-edges update-pointers update-dag
+		  edge-class)
   (let* ((dag (make-array (+ (length text) 1))))
     (labels ((iter (i left pointers space-info)
 	       (if (> i (length text))
@@ -204,19 +206,30 @@
 							    (char text i))))
 			  (left (funcall update-dag dag i left
 					 updated-pointers build-edges
-					 space-info)))
+					 space-info
+					 edge-class)))
 		     (iter (+ i 1) left updated-pointers space-info)))))
-      (setf (elt dag 0) (make-instance 'edge))
+      (setf (elt dag 0) (make-instance edge-class))
       (iter 1 0 nil (make-instance 'space-info)))))
 
-(defun dag-to-list (dag text)
+(defun proto-dag-to-list (dag text make-entry)
   (labels ((iter (e lst)
 	     (if (eq 0 e)
 		 lst
-		 (let* ((s (s (elt dag e)))
+		 (let* ((edge (aref dag e))
+			(s (cl-wordcut:s edge))
 			(surface (subseq text s e)))
-		   (iter s (cons surface lst))))))		   
+		   (iter s
+			 (cons (funcall make-entry surface edge) 
+			       lst))))))	   
     (iter (length text) nil)))
+
+(defun dag-to-list (dag text)
+  (flet ((make-entry (surface edge)
+	   surface))
+    (cl-wordcut:proto-dag-to-list dag
+				  text
+				  #'make-entry)))
 
 (defun create-basic-wordcut (dict)
   (let ((build-edges (create-edges-builder 'edge))
@@ -226,7 +239,8 @@
 		  text
 		  build-edges
 		  update-pointers
-		  #'basic-update-dag)))
+		  #'basic-update-dag
+		  'edge)))
 	(dag-to-list dag text)))))
 
 (defmethod print-object ((self edge) str)

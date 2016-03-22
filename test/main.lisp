@@ -92,7 +92,8 @@
 		   "ขามกา"
 		   build-edges
 		   update-pointers
-		   #'cl-wordcut:basic-update-dag)))
+		   #'cl-wordcut:basic-update-dag
+		   'cl-wordcut:edge)))
 	(is (eq 6 (length dag)))
 	(is (eq :INIT (cl-wordcut:etype (elt dag 0))))
 	(is (eq :INIT (cl-wordcut:etype (elt dag 0))))
@@ -230,7 +231,8 @@
 		   "ភាសា"
 		   build-edges
 		   update-pointers
-		   #'cl-wordcut:basic-update-dag)))
+		   #'cl-wordcut:basic-update-dag
+		   'cl-wordcut:edge)))
 	(is (eq 5 (length dag)))
 	(is (eq :DICT
 		(cl-wordcut:etype (elt dag 4))))
